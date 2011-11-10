@@ -43,10 +43,9 @@ config.json:
 
 ``` json
 {
-    "autoload_path": "/path/to/autoload.php",
     "yuicompressor_path": "/path/to/yuicompressor.jar",
-    "java_path": "/usr/bin/java,
-    "document_root": "/your/document/root"
+    "closurejar_path": "/path/to/google_closure/compiler.jar",
+    "java_path": "/usr/bin/java
 }
 ```
 
