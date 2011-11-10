@@ -41,13 +41,13 @@ function smarty_block_assetic($params, $content, $template, &$repeat)
     static $assetsUrls;
 	
 	// Read config config file
-    $config = json_decode(file_get_contents($params['config_path'] . '/config.json'));
+    $config = json_decode(file_get_contents($_SERVER['DOCUMENT_ROOT'] . '/' . $params['config_path'] . '/config.json'));
 
     // Opening tag (first call only)
     if ($repeat) {
         // Read bundles and dependencies config files
-        $bundles = json_decode(file_get_contents($params['config_path'] . '/bundles.json'));
-        $dependencies = json_decode(file_get_contents($params['config_path'] . '/dependencies.json'));
+        $bundles = json_decode(file_get_contents($_SERVER['DOCUMENT_ROOT'] . '/' . $params['config_path'] . '/bundles.json'));
+        $dependencies = json_decode(file_get_contents($_SERVER['DOCUMENT_ROOT'] . '/' . $params['config_path'] . '/dependencies.json'));
         
         $am = new AssetManager();
         
@@ -55,9 +55,11 @@ function smarty_block_assetic($params, $content, $template, &$repeat)
         $fm->set('yui_js', new Filter\Yui\JsCompressorFilter($config->yuicompressor_path, $config->java_path));
         $fm->set('yui_css', new Filter\Yui\CssCompressorFilter($config->yuicompressor_path, $config->java_path));
         $fm->set('less', new Filter\LessphpFilter());
+		$fm->set('closure_api', new Filter\GoogleClosure\CompilerApiFilter());
+		$fm->set('closure_jar', new Filter\GoogleClosure\CompilerJarFilter($config->closurejar_path, $config->java_path));
         
         // Factory setup
-        $factory = new AssetFactory($config->document_root);
+        $factory = new AssetFactory($_SERVER['DOCUMENT_ROOT']);
         $factory->setAssetManager($am);
         $factory->setFilterManager($fm);
         $factory->setDefaultOutput('assetic/*.'.$params['output']);
