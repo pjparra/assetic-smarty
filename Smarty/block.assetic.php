@@ -55,8 +55,8 @@ function smarty_block_assetic($params, $content, $template, &$repeat)
         $fm->set('yui_js', new Filter\Yui\JsCompressorFilter($config->yuicompressor_path, $config->java_path));
         $fm->set('yui_css', new Filter\Yui\CssCompressorFilter($config->yuicompressor_path, $config->java_path));
         $fm->set('less', new Filter\LessphpFilter());
-		$fm->set('closure_api', new Filter\GoogleClosure\CompilerApiFilter());
-		$fm->set('closure_jar', new Filter\GoogleClosure\CompilerJarFilter($config->closurejar_path, $config->java_path));
+        $fm->set('closure_api', new Filter\GoogleClosure\CompilerApiFilter());
+        $fm->set('closure_jar', new Filter\GoogleClosure\CompilerJarFilter($config->closurejar_path, $config->java_path));
         
         // Factory setup
         $factory = new AssetFactory($_SERVER['DOCUMENT_ROOT']);
