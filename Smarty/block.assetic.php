@@ -18,17 +18,6 @@ use Assetic\AssetWriter;
 use Assetic\Asset\AssetCache;
 use Assetic\Cache\FilesystemCache;
 
-spl_autoload_register(function($class)
-{
-    if (0 === strpos($class, 'Assetic\\')) {
-        $file = __DIR__ . '/../../../' . str_replace('\\', '/', $class) . '.php';
-        if (file_exists($file)) {
-            require_once $file;
-			
-            return true;
-        }
-    }
-});
 
 if (isset($_SERVER['LESSPHP'])) {
     require_once $_SERVER['LESSPHP'];
@@ -40,21 +29,30 @@ function smarty_block_assetic($params, $content, $template, &$repeat)
     static $count;
     static $assetsUrls;
 	
-	// Read config config file
-    $config = json_decode(file_get_contents($_SERVER['DOCUMENT_ROOT'] . '/' . $params['config_path'] . '/config.json'));
+    // Read config config file
+    if (isset($params['config_path']))
+         $base_path = $_SERVER['DOCUMENT_ROOT'] . '/' . $params['config_path'];
+    else
+    // Find the config file in Symfony2 config dir
+         $base_path = __DIR__.'/../../../../app/config/smarty-assetic';
+
+    $config = json_decode(file_get_contents($base_path . '/config.json'));
 
     // Opening tag (first call only)
     if ($repeat) {
         // Read bundles and dependencies config files
-        $bundles = json_decode(file_get_contents($_SERVER['DOCUMENT_ROOT'] . '/' . $params['config_path'] . '/bundles.json'));
-        $dependencies = json_decode(file_get_contents($_SERVER['DOCUMENT_ROOT'] . '/' . $params['config_path'] . '/dependencies.json'));
+        $bundles = json_decode(file_get_contents($base_path . '/bundles.json'));
+        $dependencies = json_decode(file_get_contents($base_path . '/dependencies.json'));
         
         $am = new AssetManager();
         
         $fm = new FilterManager();
+
+
         $fm->set('yui_js', new Filter\Yui\JsCompressorFilter($config->yuicompressor_path, $config->java_path));
         $fm->set('yui_css', new Filter\Yui\CssCompressorFilter($config->yuicompressor_path, $config->java_path));
         $fm->set('less', new Filter\LessphpFilter());
+        $fm->set('sass', new Filter\Sass\SassFilter());
         $fm->set('closure_api', new Filter\GoogleClosure\CompilerApiFilter());
         $fm->set('closure_jar', new Filter\GoogleClosure\CompilerJarFilter($config->closurejar_path, $config->java_path));
         
@@ -110,11 +108,12 @@ function smarty_block_assetic($params, $content, $template, &$repeat)
                     }
                 }
             }
-            
+          
             // Now, include assets
             foreach (explode(',', $params['assets']) as $a) {
                 // Add the asset to the list if not already present, as a reference or as a simple asset
                 $ref = null;
+                if (isset($dependencies->$params['output']))
                 foreach ($dependencies->$params['output']->references as $name => $file) {
                     if ($file == $a) {
                         $ref = $name;
@@ -158,11 +157,21 @@ function smarty_block_assetic($params, $content, $template, &$repeat)
             
             $count = count($assetsUrls);
             
-            $template->assign($params['asset_url'], $config->site_url.'/'.$params['build_path'].'/'.$assetsUrls[$count-1]);
+            if (isset($config->site_url))
+              $template->assign($params['asset_url'], $config->site_url.'/'.$params['build_path'].'/'.$assetsUrls[$count-1]);
+            else
+              $template->assign($params['asset_url'], '/'.$params['build_path'].'/'.$assetsUrls[$count-1]);
+
+            
         // Production mode, include an all-in-one asset
         } else {
-            $template->assign($params['asset_url'], $config->site_url.'/'.$params['build_path'].'/'.$asset->getTargetPath());
+            if (isset($config->site_url))
+              $template->assign($params['asset_url'], $config->site_url.'/'.$params['build_path'].'/'.$asset->getTargetPath());
+            else
+              $template->assign($params['asset_url'], '/'.$params['build_path'].'/'.$asset->getTargetPath());
+
         }
+
     // Closing tag
     } else {
         if (isset($content)) {
@@ -170,7 +179,12 @@ function smarty_block_assetic($params, $content, $template, &$repeat)
             if ($params['debug']) {
                 $count--;
 				if ($count > 0) {
-                	$template->assign($params['asset_url'], $config->site_url.'/'.$params['build_path'].'/'.$assetsUrls[$count-1]);
+            if (isset($config->site_url)) 
+             	$template->assign($params['asset_url'], $config->site_url.'/'.$params['build_path'].'/'.$assetsUrls[$count-1]);
+            else
+              $template->assign($params['asset_url'], '/'.$params['build_path'].'/'.$assetsUrls[$count-1]);
+
+
 				}
                 $repeat = $count > 0;
             }
