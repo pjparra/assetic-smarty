@@ -158,17 +158,17 @@ function smarty_block_assetic($params, $content, $template, &$repeat)
             $count = count($assetsUrls);
             
             if (isset($config->site_url))
-              $template->assign($params['asset_url'], $config->site_url.'/'.$params['build_path'].'/'.$assetsUrls[$count-1]);
+                $template->assign($params['asset_url'], $config->site_url.'/'.$params['build_path'].'/'.$assetsUrls[$count-1]);
             else
-              $template->assign($params['asset_url'], '/'.$params['build_path'].'/'.$assetsUrls[$count-1]);
+                $template->assign($params['asset_url'], '/'.$params['build_path'].'/'.$assetsUrls[$count-1]);
 
             
         // Production mode, include an all-in-one asset
         } else {
             if (isset($config->site_url))
-              $template->assign($params['asset_url'], $config->site_url.'/'.$params['build_path'].'/'.$asset->getTargetPath());
+                $template->assign($params['asset_url'], $config->site_url.'/'.$params['build_path'].'/'.$asset->getTargetPath());
             else
-              $template->assign($params['asset_url'], '/'.$params['build_path'].'/'.$asset->getTargetPath());
+                $template->assign($params['asset_url'], '/'.$params['build_path'].'/'.$asset->getTargetPath());
 
         }
 
@@ -178,14 +178,12 @@ function smarty_block_assetic($params, $content, $template, &$repeat)
             // If debug mode is active, we want to include assets separately
             if ($params['debug']) {
                 $count--;
-				if ($count > 0) {
-            if (isset($config->site_url)) 
-             	$template->assign($params['asset_url'], $config->site_url.'/'.$params['build_path'].'/'.$assetsUrls[$count-1]);
-            else
-              $template->assign($params['asset_url'], '/'.$params['build_path'].'/'.$assetsUrls[$count-1]);
-
-
-				}
+                if ($count > 0) {
+                    if (isset($config->site_url)) 
+                        $template->assign($params['asset_url'], $config->site_url.'/'.$params['build_path'].'/'.$assetsUrls[$count-1]);
+                    else
+                        $template->assign($params['asset_url'], '/'.$params['build_path'].'/'.$assetsUrls[$count-1]);
+                }
                 $repeat = $count > 0;
             }
 
