@@ -14,6 +14,7 @@ use Assetic\AssetManager;
 use Assetic\FilterManager;
 use Assetic\Filter;
 use Assetic\Factory\AssetFactory;
+use Assetic\Factory\Worker\CacheBustingWorker;
 use Assetic\AssetWriter;
 use Assetic\Asset\AssetCache;
 use Assetic\Cache\FilesystemCache;
@@ -28,10 +29,13 @@ function smarty_block_assetic($params, $content, $template, &$repeat)
     // In debug mode, we have to be able to loop a certain number of times, so we use a static counter
     static $count;
     static $assetsUrls;
-	
-    // Read config config file
+
+    $realpath = realpath($params['config_path']);
+    $root = mb_substr($realpath, 0, mb_strlen($realpath) - mb_strlen($params['config_path']));
+
+    // Read config file
     if (isset($params['config_path']))
-         $base_path = $_SERVER['DOCUMENT_ROOT'] . '/' . $params['config_path'];
+         $base_path = $root . '/' . $params['config_path'];
     else
     // Find the config file in Symfony2 config dir
          $base_path = __DIR__.'/../../../../app/config/smarty-assetic';
@@ -48,19 +52,23 @@ function smarty_block_assetic($params, $content, $template, &$repeat)
         
         $fm = new FilterManager();
 
+        $cssEmbedFilter = new Filter\CssEmbedFilter($root . $config->cssembed_path, $config->java_path);
+        $cssEmbedFilter->setRoot($root);
 
-        $fm->set('yui_js', new Filter\Yui\JsCompressorFilter($config->yuicompressor_path, $config->java_path));
-        $fm->set('yui_css', new Filter\Yui\CssCompressorFilter($config->yuicompressor_path, $config->java_path));
+        $fm->set('yui_js', new Filter\Yui\JsCompressorFilter($root . $config->yuicompressor_path, $config->java_path));
+        $fm->set('yui_css', new Filter\Yui\CssCompressorFilter($root . $config->yuicompressor_path, $config->java_path));
         $fm->set('less', new Filter\LessphpFilter());
         $fm->set('sass', new Filter\Sass\SassFilter());
+        $fm->set('cssembed', $cssEmbedFilter);
         $fm->set('closure_api', new Filter\GoogleClosure\CompilerApiFilter());
-        $fm->set('closure_jar', new Filter\GoogleClosure\CompilerJarFilter($config->closurejar_path, $config->java_path));
+        $fm->set('closure_jar', new Filter\GoogleClosure\CompilerJarFilter($root . $config->closurejar_path, $config->java_path));
         
         // Factory setup
-        $factory = new AssetFactory($_SERVER['DOCUMENT_ROOT']);
+        $factory = new AssetFactory($root);
         $factory->setAssetManager($am);
         $factory->setFilterManager($fm);
         $factory->setDefaultOutput('assetic/*.'.$params['output']);
+        $factory->addWorker(new CacheBustingWorker(CacheBustingWorker::STRATEGY_MODIFICATION));
         
         if (isset($params['filters'])) {
             $filters = explode(',', $params['filters']);
@@ -83,7 +91,7 @@ function smarty_block_assetic($params, $content, $template, &$repeat)
                 $asset,
                 new FilesystemCache($params['build_path'])
             );
-            
+
             $writer->writeAsset($cache);
         // If individual assets are provided
         } elseif (isset($params['assets'])) {
@@ -99,16 +107,16 @@ function smarty_block_assetic($params, $content, $template, &$repeat)
                             $am->get($ref);
                         }
                         catch (InvalidArgumentException $e) {
-                            $assetTmp = $factory->createAsset(
-                                $dependencies->$params['output']->references->$ref
-                            );
+                            $path = $dependencies->$params['output']->references->$ref;
+
+                            $assetTmp = $factory->createAsset($path);
                             $am->set($ref, $assetTmp);
                             $assets[] = '@'.$ref;
                         }
                     }
                 }
             }
-          
+
             // Now, include assets
             foreach (explode(',', $params['assets']) as $a) {
                 // Add the asset to the list if not already present, as a reference or as a simple asset
@@ -137,7 +145,7 @@ function smarty_block_assetic($params, $content, $template, &$repeat)
                 $asset,
                 new FilesystemCache($params['build_path'])
             );
-            
+
             $writer->writeAsset($cache);
         }
 
@@ -145,10 +153,12 @@ function smarty_block_assetic($params, $content, $template, &$repeat)
         if ($params['debug']) {
             $assetsUrls = array();
             foreach ($asset as $a) {
+
                 $cache = new AssetCache(
                     $a,
                     new FilesystemCache($params['build_path'])
                 );
+
                 $writer->writeAsset($cache);
                 $assetsUrls[] = $a->getTargetPath();
             }
@@ -158,15 +168,16 @@ function smarty_block_assetic($params, $content, $template, &$repeat)
             $count = count($assetsUrls);
             
             if (isset($config->site_url))
-                $template->assign($params['asset_url'], $config->site_url.'/'.$params['build_path'].'/'.$assetsUrls[$count-1]);
+                $template->assign($params['asset_url'], '/'.$config->site_url.'/'.$params['build_path'].'/'.$assetsUrls[$count-1]);
             else
                 $template->assign($params['asset_url'], '/'.$params['build_path'].'/'.$assetsUrls[$count-1]);
 
             
         // Production mode, include an all-in-one asset
         } else {
+        	Log::writeDump($asset->getTargetPath());
             if (isset($config->site_url))
-                $template->assign($params['asset_url'], $config->site_url.'/'.$params['build_path'].'/'.$asset->getTargetPath());
+                $template->assign($params['asset_url'], '/'.$config->site_url.'/'.$params['build_path'].'/'.$asset->getTargetPath());
             else
                 $template->assign($params['asset_url'], '/'.$params['build_path'].'/'.$asset->getTargetPath());
 
@@ -180,7 +191,7 @@ function smarty_block_assetic($params, $content, $template, &$repeat)
                 $count--;
                 if ($count > 0) {
                     if (isset($config->site_url)) 
-                        $template->assign($params['asset_url'], $config->site_url.'/'.$params['build_path'].'/'.$assetsUrls[$count-1]);
+                        $template->assign($params['asset_url'], '/'.$config->site_url.'/'.$params['build_path'].'/'.$assetsUrls[$count-1]);
                     else
                         $template->assign($params['asset_url'], '/'.$params['build_path'].'/'.$assetsUrls[$count-1]);
                 }
