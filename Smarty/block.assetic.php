@@ -68,6 +68,7 @@ function smarty_block_assetic($params, $content, $template, &$repeat)
         $factory->setAssetManager($am);
         $factory->setFilterManager($fm);
         $factory->setDefaultOutput('assetic/*.'.$params['output']);
+        $factory->setDebug($params['debug']);
         $factory->addWorker(new CacheBustingWorker(CacheBustingWorker::STRATEGY_MODIFICATION));
         
         if (isset($params['filters'])) {
@@ -83,8 +84,7 @@ function smarty_block_assetic($params, $content, $template, &$repeat)
         if (isset($params['bundle'])) {
             $asset = $factory->createAsset(
                 $bundles->$params['output']->$params['bundle'],
-                $filters,
-                array($params['debug'])
+                $filters
             );
             
             $cache = new AssetCache(
@@ -137,8 +137,7 @@ function smarty_block_assetic($params, $content, $template, &$repeat)
             // Create the asset
             $asset = $factory->createAsset(
                 $assets,
-                $filters,
-                array($params['debug'])
+                $filters
             );
             
             $cache = new AssetCache(
@@ -175,7 +174,6 @@ function smarty_block_assetic($params, $content, $template, &$repeat)
             
         // Production mode, include an all-in-one asset
         } else {
-        	Log::writeDump($asset->getTargetPath());
             if (isset($config->site_url))
                 $template->assign($params['asset_url'], '/'.$config->site_url.'/'.$params['build_path'].'/'.$asset->getTargetPath());
             else
