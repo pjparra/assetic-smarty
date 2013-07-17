@@ -1,0 +1,24 @@
+{
+    "name": "pjparra/assetic-smarty",
+    "minimum-stability": "dev",
+    "description": "Assetic plugin for Smarty",
+    "keywords": [ "assets", "compression", "minification", "smarty", "assetic" ],
+    "homepage": "https://github.com/pjparra/assetic-smarty",
+    "type": "library",
+    "authors": [
+        {
+            "name": "Pierre-Jean Parra",
+            "email": "parra.pj@gmail.com",
+            "homepage": "http://blog.pierrejeanparra.com/"
+        }
+    ],
+    "require": {
+        "php": ">=5.3.1"
+    },
+    "suggest": {
+        "smarty/smarty": "assetic-smarty provides the integration with Smarty.",
+        "kriswallsmith/assetic": "assetic-smarty provides the integration with Assetic.",
+        "packagist/yuicompressor-bin": "assetic-smarty provides the integration with yui compressor.",
+        "packagist/closurecompiler-bin": "assetic-smarty provides the integration with Google closuer compiler."
+    }
+}
