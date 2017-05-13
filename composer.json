@@ -1,8 +1,9 @@
 {
     "name": "pjparra/assetic-smarty",
+    "license": "MIT",
     "minimum-stability": "dev",
     "description": "Assetic plugin for Smarty",
-    "keywords": [ "assets", "compression", "minification", "smarty", "assetic" ],
+    "keywords": [ "assets", "compression", "minification", "smarty", "assetic", "php" ],
     "homepage": "https://github.com/pjparra/assetic-smarty",
     "type": "library",
     "authors": [
