@@ -1,7 +1,7 @@
 Smarty
 ------
 
-Assetic can easily be integrated with Smarty with this Smarty plugin. Just drop this plugin in the Assetic/Extensions/Smarty folder.
+Assetic can easily be integrated with Smarty 3 with this Smarty plugin. Just drop this plugin in the Assetic/Extensions/Smarty folder.
 
 First, you have to add Assetic/Extension/Smarty to your Smarty plugins_dir:
 
