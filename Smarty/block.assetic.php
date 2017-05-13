@@ -29,9 +29,10 @@ function smarty_block_assetic($params, $content, $template, &$repeat)
     // In debug mode, we have to be able to loop a certain number of times, so we use a static counter
     static $count;
     static $assetsUrls;
+    static $charset = 'UTF-8';
 
     $realpath = realpath($params['config_path']);
-    $root = mb_substr($realpath, 0, mb_strlen($realpath) - mb_strlen($params['config_path']));
+    $root = mb_substr($realpath, 0, mb_strlen($realpath, $charset) - mb_strlen($params['config_path'], $charset), $charset);
 
     // Read config file
     if (isset($params['config_path']))
