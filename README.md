@@ -45,7 +45,8 @@ config.json:
 {
     "yuicompressor_path": "/path/to/yuicompressor.jar",
     "closurejar_path": "/path/to/google_closure/compiler.jar",
-    "java_path": "/usr/bin/java
+    "cssembed_path": "/path/to/...",
+    "java_path": "/usr/bin/java"
 }
 ```
 
